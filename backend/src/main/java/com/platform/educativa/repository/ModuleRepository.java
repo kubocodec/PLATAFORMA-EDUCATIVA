@@ -1,0 +1,12 @@
+package com.platform.educativa.repository;
+
+import com.platform.educativa.model.entity.Module;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface ModuleRepository extends JpaRepository<Module, Long> {
+    List<Module> findByCourseIdAndActiveTrueOrderByOrderIndexAsc(Long courseId);
+}

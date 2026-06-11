@@ -1,0 +1,22 @@
+# General
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+
+# Backend
+backend/target/
+backend/uploads/
+backend/logs/
+backend/*.log
+backend/hs_err_pid*
