@@ -45,34 +45,34 @@ public class CertificateService {
             
             // --- DISEÑO PREMIUM DEL CERTIFICADO ---
             
-            // 1. Colores
-            BaseColor darkBlue = new BaseColor(25, 42, 86);
-            BaseColor gold = new BaseColor(212, 175, 55);
-            BaseColor lightGrey = new BaseColor(100, 100, 100);
+            // 1. Colores Soprint Mentor
+            BaseColor wine = new BaseColor(171, 25, 25);
+            BaseColor darkGray = new BaseColor(87, 87, 86);
+            BaseColor lightGray = new BaseColor(133, 133, 133);
             
             // 2. Bordes
             com.itextpdf.text.pdf.PdfContentByte canvas = writer.getDirectContent();
             Rectangle rect = document.getPageSize();
             
-            // Borde exterior grueso (Azul Oscuro)
-            canvas.setColorStroke(darkBlue);
+            // Borde exterior grueso (Vino)
+            canvas.setColorStroke(wine);
             canvas.setLineWidth(15f);
             canvas.rectangle(rect.getLeft() + 30, rect.getBottom() + 30, rect.getWidth() - 60, rect.getHeight() - 60);
             canvas.stroke();
             
-            // Borde interior fino (Dorado)
-            canvas.setColorStroke(gold);
+            // Borde interior fino (Gris Oscuro)
+            canvas.setColorStroke(darkGray);
             canvas.setLineWidth(3f);
             canvas.rectangle(rect.getLeft() + 48, rect.getBottom() + 48, rect.getWidth() - 96, rect.getHeight() - 96);
             canvas.stroke();
             
             // 3. Fuentes
-            Font titleFont = FontFactory.getFont(FontFactory.TIMES_BOLD, 46, darkBlue);
-            Font subtitleFont = FontFactory.getFont(FontFactory.TIMES_ITALIC, 20, lightGrey);
-            Font nameFont = FontFactory.getFont(FontFactory.TIMES_BOLD, 40, gold);
+            Font titleFont = FontFactory.getFont(FontFactory.TIMES_BOLD, 46, wine);
+            Font subtitleFont = FontFactory.getFont(FontFactory.TIMES_ITALIC, 20, lightGray);
+            Font nameFont = FontFactory.getFont(FontFactory.TIMES_BOLD, 40, darkGray);
             Font textFont = FontFactory.getFont(FontFactory.HELVETICA, 16, BaseColor.DARK_GRAY);
-            Font courseFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 24, darkBlue);
-            Font smallFont = FontFactory.getFont(FontFactory.HELVETICA, 12, lightGrey);
+            Font courseFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 24, wine);
+            Font smallFont = FontFactory.getFont(FontFactory.HELVETICA, 12, lightGray);
             
             document.add(new Paragraph("\n\n")); // Espaciado inicial
             

@@ -22,7 +22,7 @@ export interface CourseModule {
   courseId: number;
   title: string;
   description?: string;
-  type: string; // TUTORIAL, BENEFITS, INSTALLATION, RECHARGE, DRIVERS, QUIZ
+  type: string; // VIDEO, TEXT, DOCUMENT, QUIZ
   orderIndex?: number;
   active: boolean;
   videos?: ModuleContent[];

@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { ModuleService, CourseModule, ModuleContent } from '../../../../core/services/module.service';
 import { CourseService, Course } from '../../../../core/services/course.service';
+import { FileService } from '../../../../core/services/file.service';
 
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -132,7 +133,7 @@ import { EditorModule } from 'primeng/editor';
             </div>
 
             <!-- Campos Dinámicos según el tipo -->
-            <div *ngIf="selectedModule?.type === 'TUTORIAL' || selectedModule?.type === 'INSTALLATION' || selectedModule?.type === 'RECHARGE'">
+            <div *ngIf="selectedModule?.type === 'VIDEO'">
               <div class="field">
                 <label for="videoUrl">URL del Video (YouTube / Vimeo / MP4) *</label>
                 <input type="text" pInputText id="videoUrl" formControlName="videoUrl" />
@@ -143,17 +144,26 @@ import { EditorModule } from 'primeng/editor';
               </div>
             </div>
 
-            <div *ngIf="selectedModule?.type === 'BENEFITS'">
+            <div *ngIf="selectedModule?.type === 'TEXT'">
               <div class="field">
                 <label for="textContent">Contenido (Texto) *</label>
                 <p-editor formControlName="content" [style]="{ height: '200px' }"></p-editor>
               </div>
             </div>
 
-            <div *ngIf="selectedModule?.type === 'DRIVERS'">
+            <div *ngIf="selectedModule?.type === 'DOCUMENT'">
               <div class="field">
-                <label for="fileUrl">URL del Archivo *</label>
-                <input type="text" pInputText id="fileUrl" formControlName="url" />
+                <label>Archivo de Documentación / Controlador *</label>
+                <div class="flex gap-2 align-items-center mb-2">
+                  <p-button icon="pi pi-upload" label="Subir Archivo Local" (onClick)="fileInput.click()" [loading]="uploadingFile" styleClass="p-button-outlined"></p-button>
+                  <span *ngIf="uploadingFile" class="text-500 text-sm"><i class="pi pi-spin pi-spinner mr-2"></i>Subiendo al servidor...</span>
+                </div>
+                <input type="file" #fileInput style="display: none;" (change)="onFileSelected($event)" />
+                
+                <div class="mt-3">
+                  <label for="fileUrl" class="text-sm text-500">URL del Archivo (Generada o Externa):</label>
+                  <input type="text" pInputText id="fileUrl" formControlName="url" placeholder="https://..." />
+                </div>
               </div>
               <div class="field">
                 <label for="fileType">Tipo de Archivo</label>
@@ -184,6 +194,7 @@ export class ManageModulesComponent implements OnInit {
   private router = inject(Router);
   private moduleService = inject(ModuleService);
   private courseService = inject(CourseService);
+  private fileService = inject(FileService);
   private messageService = inject(MessageService);
   private fb = inject(FormBuilder);
 
@@ -194,17 +205,16 @@ export class ManageModulesComponent implements OnInit {
   moduleDialog = false;
   isEditing = false;
   currentModuleId?: number;
+  uploadingFile = false;
 
   contentDialog = false;
   selectedModule?: CourseModule;
   currentContentId?: number;
 
   moduleTypes = [
-    { label: 'Tutorial (Video)', value: 'TUTORIAL' },
-    { label: 'Beneficios (Texto)', value: 'BENEFITS' },
-    { label: 'Instalación (Video)', value: 'INSTALLATION' },
-    { label: 'Recargas (Video)', value: 'RECHARGE' },
-    { label: 'Controladores (Descargas)', value: 'DRIVERS' },
+    { label: 'Video', value: 'VIDEO' },
+    { label: 'Texto / Lectura', value: 'TEXT' },
+    { label: 'Archivo / Documento', value: 'DOCUMENT' },
     { label: 'Cuestionario (Examen)', value: 'QUIZ' }
   ];
 
@@ -217,7 +227,7 @@ export class ManageModulesComponent implements OnInit {
 
   moduleForm: FormGroup = this.fb.group({
     title: ['', Validators.required],
-    type: ['TUTORIAL', Validators.required],
+    type: ['VIDEO', Validators.required],
     description: [''],
     orderIndex: [0],
     active: [true]
@@ -265,7 +275,7 @@ export class ManageModulesComponent implements OnInit {
   }
 
   openNew() {
-    this.moduleForm.reset({ active: true, orderIndex: 0, type: 'TUTORIAL' });
+    this.moduleForm.reset({ active: true, orderIndex: 0, type: 'VIDEO' });
     this.isEditing = false;
     this.moduleDialog = true;
   }
@@ -344,7 +354,7 @@ export class ManageModulesComponent implements OnInit {
     });
 
     // Pre-fill existing content if available
-    if (['TUTORIAL', 'INSTALLATION', 'RECHARGE'].includes(mod.type) && mod.videos && mod.videos.length > 0) {
+    if (mod.type === 'VIDEO' && mod.videos && mod.videos.length > 0) {
       const video = mod.videos[0];
       this.currentContentId = video.id;
       this.contentForm.patchValue({
@@ -353,14 +363,14 @@ export class ManageModulesComponent implements OnInit {
         videoUrl: video.videoUrl,
         durationMinutes: video.durationMinutes
       });
-    } else if (mod.type === 'BENEFITS' && mod.texts && mod.texts.length > 0) {
+    } else if (mod.type === 'TEXT' && mod.texts && mod.texts.length > 0) {
       const text = mod.texts[0];
       this.currentContentId = text.id;
       this.contentForm.patchValue({
         title: text.title,
         content: text.content
       });
-    } else if (mod.type === 'DRIVERS' && mod.downloads && mod.downloads.length > 0) {
+    } else if (mod.type === 'DOCUMENT' && mod.downloads && mod.downloads.length > 0) {
       const download = mod.downloads[0];
       this.currentContentId = download.id;
       this.contentForm.patchValue({
@@ -372,6 +382,24 @@ export class ManageModulesComponent implements OnInit {
     }
 
     this.contentDialog = true;
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.uploadingFile = true;
+      this.fileService.uploadFile(file).subscribe({
+        next: (response) => {
+          this.contentForm.patchValue({ url: response.fileDownloadUri });
+          this.messageService.add({severity:'success', summary: 'Archivo subido', detail: 'Enlace generado correctamente.'});
+          this.uploadingFile = false;
+        },
+        error: () => {
+          this.messageService.add({severity:'error', summary: 'Error', detail: 'No se pudo subir el archivo al servidor.'});
+          this.uploadingFile = false;
+        }
+      });
+    }
   }
 
   saveContent() {
@@ -386,7 +414,7 @@ export class ManageModulesComponent implements OnInit {
       isLocalFile: false
     };
 
-    if (['TUTORIAL', 'INSTALLATION', 'RECHARGE'].includes(this.selectedModule.type)) {
+    if (this.selectedModule.type === 'VIDEO') {
       contentReq.videoUrl = val.videoUrl;
       contentReq.durationMinutes = val.durationMinutes;
       if (this.currentContentId) {
@@ -400,7 +428,7 @@ export class ManageModulesComponent implements OnInit {
           error: () => this.contentError()
         });
       }
-    } else if (this.selectedModule.type === 'BENEFITS') {
+    } else if (this.selectedModule.type === 'TEXT') {
       contentReq.content = val.content;
       if (this.currentContentId) {
         this.moduleService.updateText(this.currentContentId, contentReq).subscribe({
@@ -413,9 +441,11 @@ export class ManageModulesComponent implements OnInit {
           error: () => this.contentError()
         });
       }
-    } else if (this.selectedModule.type === 'DRIVERS') {
+    } else if (this.selectedModule.type === 'DOCUMENT') {
       contentReq.url = val.url;
       contentReq.fileType = val.fileType;
+      contentReq.isLocalFile = val.url && val.url.includes('/api/files/download');
+      
       if (this.currentContentId) {
         this.moduleService.updateDownload(this.currentContentId, contentReq).subscribe({
           next: () => this.contentSuccess(),
