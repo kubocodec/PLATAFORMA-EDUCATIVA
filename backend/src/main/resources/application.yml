@@ -2,9 +2,9 @@ spring:
   application:
     name: educativa-backend
   datasource:
-    url: jdbc:postgresql://localhost:5432/educativa
-    username: postgres
-    password: root
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/educativa}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -20,8 +20,8 @@ server:
 
 app:
   jwt:
-    secret: 9a4f2c8d3b7a1e6f45c8a0b3f267d8b1d4e6f3c8a9d2b5f8e3a9c8b5f6v8a3d9c
-    expiration: 86400000 # 24 horas
+    secret: ${APP_JWT_SECRET:9a4f2c8d3b7a1e6f45c8a0b3f267d8b1d4e6f3c8a9d2b5f8e3a9c8b5f6v8a3d9c}
+    expiration: ${APP_JWT_EXPIRATION:86400000} # 24 horas
 
 springdoc:
   api-docs:

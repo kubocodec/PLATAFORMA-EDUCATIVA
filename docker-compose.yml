@@ -1,0 +1,56 @@
+services:
+  # ---- Backend Spring Boot (NO se expone a internet; solo lo alcanza Nginx) ----
+  backend:
+    build: ./backend
+    image: educativa-backend:latest
+    container_name: educativa-backend
+    restart: unless-stopped
+    environment:
+      # Postgres es un contenedor en la red postgres_net → host = "postgres"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/educativa
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-admin}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?Falta el secret DB_PASSWORD}
+      APP_JWT_SECRET: ${JWT_SECRET:?Falta el secret JWT_SECRET}
+    volumes:
+      # Persiste los archivos/videos subidos entre despliegues
+      - educativa_uploads:/app/uploads
+    networks:
+      - educativa_net   # comunicación interna con el frontend (Nginx)
+      - postgres_net    # acceso al contenedor Postgres
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/v3/api-docs"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # ---- Frontend Angular servido por Nginx (único contenedor expuesto por Traefik) ----
+  frontend:
+    build: ./frontend
+    image: educativa-frontend:latest
+    container_name: educativa-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - proxy_network   # Traefik (HTTPS)
+      - educativa_net   # llega al backend por /api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.educativa.rule=Host(`cursos.soprintserver.duckdns.org`)"
+      - "traefik.http.routers.educativa.entrypoints=websecure"
+      - "traefik.http.routers.educativa.tls=true"
+      - "traefik.http.routers.educativa.tls.certresolver=letsencrypt"
+      - "traefik.http.services.educativa.loadbalancer.server.port=80"
+
+networks:
+  proxy_network:
+    external: true
+  postgres_net:
+    external: true
+  educativa_net:
+    driver: bridge
+
+volumes:
+  educativa_uploads:

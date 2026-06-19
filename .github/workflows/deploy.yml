@@ -1,0 +1,43 @@
+name: Deploy Plataforma Educativa
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-plataforma-educativa
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # La etiqueta única debe coincidir con la del self-hosted runner registrado en el server
+    runs-on: [self-hosted, linux, plataforma-educativa]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build y despliegue
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET:  ${{ secrets.JWT_SECRET }}
+        run: docker compose up -d --build --remove-orphans
+
+      - name: Limpieza de imágenes viejas
+        run: docker image prune -f
+
+      - name: Healthcheck backend
+        run: |
+          for i in $(seq 1 30); do
+            s=$(docker inspect --format='{{.State.Health.Status}}' educativa-backend 2>/dev/null || echo starting)
+            echo "Intento $i -> backend: $s"
+            [ "$s" = "healthy" ] && echo "✅ backend arriba" && break
+            [ "$i" = "30" ] && { echo "❌ backend no llegó a healthy"; docker logs --tail 120 educativa-backend; exit 1; }
+            sleep 10
+          done
+
+      - name: Verificar frontend
+        run: |
+          docker exec educativa-frontend wget -q -O /dev/null http://localhost/ \
+            && echo "✅ frontend responde en https://cursos.soprintserver.duckdns.org" \
+            || { echo "❌ frontend no responde"; docker logs --tail 60 educativa-frontend; exit 1; }

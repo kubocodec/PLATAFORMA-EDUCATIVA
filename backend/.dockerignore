@@ -1,0 +1,9 @@
+target/
+uploads/
+logs/
+*.log
+.git/
+.github/
+.idea/
+*.md
+hs_err_pid*
