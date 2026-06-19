@@ -38,6 +38,10 @@ jobs:
 
       - name: Verificar frontend
         run: |
-          docker exec educativa-frontend wget -q -O /dev/null http://localhost/ \
-            && echo "✅ frontend responde en https://cursos.soprintserver.duckdns.org" \
-            || { echo "❌ frontend no responde"; docker logs --tail 60 educativa-frontend; exit 1; }
+          for i in $(seq 1 10); do
+            if docker exec educativa-frontend wget -q -O /dev/null http://127.0.0.1/; then
+              echo "✅ frontend responde en https://cursos.soprintserver.duckdns.org"; exit 0
+            fi
+            echo "Intento $i -> frontend aún no responde"; sleep 5
+          done
+          echo "❌ frontend no responde"; docker logs --tail 60 educativa-frontend; exit 1
