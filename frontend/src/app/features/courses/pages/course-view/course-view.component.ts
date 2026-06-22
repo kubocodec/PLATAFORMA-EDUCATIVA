@@ -180,9 +180,14 @@ export class CourseViewComponent implements OnInit {
 
   private resolveFilePreview(content: ModuleContent) {
     const rawUrl = content.url || '';
-    const fullUrl = content.isLocalFile
+    let fullUrl = content.isLocalFile
       ? environment.apiUrl.replace('/api', '') + rawUrl
       : rawUrl;
+
+    // Si la página corre en HTTPS y la URL guardada es HTTP, corregir el protocolo
+    if (window.location.protocol === 'https:' && fullUrl.startsWith('http:')) {
+      fullUrl = fullUrl.replace('http:', 'https:');
+    }
 
     this.fileUrl = fullUrl;
 
@@ -208,10 +213,13 @@ export class CourseViewComponent implements OnInit {
 
   downloadFile() {
     if (!this.currentContent?.url) return;
-    
+
     let fullUrl = this.currentContent.url;
     if (this.currentContent.isLocalFile) {
       fullUrl = environment.apiUrl.replace('/api', '') + this.currentContent.url;
+    }
+    if (window.location.protocol === 'https:' && fullUrl.startsWith('http:')) {
+      fullUrl = fullUrl.replace('http:', 'https:');
     }
     window.open(fullUrl, '_blank');
   }
