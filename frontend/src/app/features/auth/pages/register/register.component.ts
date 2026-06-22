@@ -17,7 +17,7 @@ import { AuthService } from '../../../../core/services/auth.service';
         <div class="text-center mb-5">
           <i class="pi pi-user-plus text-5xl mb-3" style="color: #AB1919;"></i>
           <h1 class="text-3xl font-bold m-0">Crear Cuenta</h1>
-          <p class="text-gray-600 mt-2">Únete a Soprint Mentor</p>
+          <p class="text-gray-600 mt-2">Únete a Soprint<sup style="font-size: 0.45em; vertical-align: super;">®</sup> Mentor</p>
         </div>
 
         <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="w-full flex flex-column gap-4">

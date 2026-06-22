@@ -16,7 +16,7 @@ import { ButtonModule } from 'primeng/button';
       <!-- Hero Section -->
       <div class="hero-section px-5 flex flex-column justify-content-center">
         <div class="max-w-7xl mx-auto w-full mt-4">
-          <h1 class="text-8xl font-serif text-gray-900 m-0" style="letter-spacing: -0.04em;">Soprint <span class="font-sans font-light text-gray-500" style="letter-spacing: -0.05em;">Mentor</span></h1>
+          <h1 class="text-8xl font-serif text-gray-900 m-0" style="letter-spacing: -0.04em;">Soprint<sup style="font-size: 0.45em; vertical-align: super;">®</sup> <span class="font-sans font-light text-gray-500" style="letter-spacing: -0.05em;">Mentor</span></h1>
           <p class="text-sm font-semibold text-gray-600 mt-3 tracking-widest uppercase" style="letter-spacing: 0.05em;">Plataforma de Capacitación y Formación</p>
         </div>
       </div>

@@ -17,7 +17,7 @@ import { AuthService } from '../../../../core/services/auth.service';
       <div class="glass-panel p-5 w-full md:w-4 lg:w-3 flex flex-column align-items-center">
         <div class="text-center mb-5">
           <i class="pi pi-graduation-cap text-6xl mb-3" style="color: #AB1919;"></i>
-          <h1 class="text-3xl font-bold m-0">Soprint Mentor</h1>
+          <h1 class="text-3xl font-bold m-0">Soprint<sup style="font-size: 0.45em; vertical-align: super;">®</sup> Mentor</h1>
           <p class="text-gray-600 mt-2">Plataforma de Capacitación Continua</p>
         </div>
 

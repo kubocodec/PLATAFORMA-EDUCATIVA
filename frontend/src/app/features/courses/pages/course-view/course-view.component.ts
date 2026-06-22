@@ -16,7 +16,7 @@ import { CardModule } from 'primeng/card';
   standalone: true,
   imports: [CommonModule, RouterModule, AccordionModule, ButtonModule, CardModule, SecureVideoPlayerComponent, SafeHtmlPipe],
   template: `
-    <div class="flex h-screen overflow-hidden" style="background: var(--surface-ground);">
+    <div class="flex h-full overflow-hidden" style="background: var(--surface-ground);">
       
       <!-- Sidebar de Navegación del Curso -->
       <div class="w-20rem surface-card shadow-2 flex flex-column h-full">

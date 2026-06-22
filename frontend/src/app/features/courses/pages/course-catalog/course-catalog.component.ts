@@ -14,7 +14,7 @@ import { ButtonModule } from 'primeng/button';
   template: `
     <div class="min-h-screen" style="background: var(--surface-ground);">
       <!-- Topbar Simple -->
-      <div class="surface-card shadow-2 px-4 py-3 flex align-items-center sticky top-0 z-5">
+      <div class="surface-card px-4 py-3 flex align-items-center sticky top-0" style="z-index: 100; border-bottom: 1px solid rgba(0,0,0,0.08);">
         <p-button icon="pi pi-arrow-left" label="Volver a Marcas" styleClass="p-button-text mr-4" routerLink="/dashboard"></p-button>
         <span class="text-xl font-bold" *ngIf="brand">{{ brand.name }} - Cursos Oficiales</span>
       </div>
