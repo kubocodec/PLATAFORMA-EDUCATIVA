@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ModuleService, CourseModule, ModuleContent } from '../../../../core/services/module.service';
 import { CourseService, Course } from '../../../../core/services/course.service';
 import { environment } from '../../../../../environments/environment';
@@ -101,10 +102,25 @@ import { CardModule } from 'primeng/card';
             </div>
 
             <!-- Render Download -->
-            <div *ngIf="contentType === 'download'" class="glass-panel p-5 border-round-xl text-center">
-              <i class="pi pi-file text-8xl text-primary mb-4"></i>
-              <h3 class="text-2xl mb-4">Recurso Descargable</h3>
-              <p-button label="Descargar Archivo" icon="pi pi-download" size="large" (onClick)="downloadFile()"></p-button>
+            <div *ngIf="contentType === 'download'">
+
+              <!-- Vista previa PDF -->
+              <div *ngIf="filePreviewType === 'pdf'" class="border-round-xl overflow-hidden shadow-2" style="height: 80vh;">
+                <iframe [src]="safeFileUrl" class="w-full h-full" style="border: none;"></iframe>
+              </div>
+
+              <!-- Vista previa Imagen -->
+              <div *ngIf="filePreviewType === 'image'" class="text-center">
+                <img [src]="fileUrl" [alt]="currentContent?.title" class="border-round-xl shadow-2" style="max-width: 100%; max-height: 80vh; object-fit: contain;" />
+              </div>
+
+              <!-- Archivo no visualizable: solo descarga -->
+              <div *ngIf="filePreviewType === 'other'" class="glass-panel p-5 border-round-xl text-center">
+                <i class="pi pi-file text-8xl text-primary mb-4"></i>
+                <h3 class="text-2xl mb-4">Recurso Descargable</h3>
+                <p-button label="Descargar Archivo" icon="pi pi-download" size="large" (onClick)="downloadFile()"></p-button>
+              </div>
+
             </div>
 
           </div>
@@ -119,13 +135,18 @@ export class CourseViewComponent implements OnInit {
   private router = inject(Router);
   private moduleService = inject(ModuleService);
   private courseService = inject(CourseService);
+  private sanitizer = inject(DomSanitizer);
 
   courseId!: number;
   course: Course | null = null;
   modules: CourseModule[] = [];
-  
+
   currentContent: ModuleContent | null = null;
   contentType: 'video' | 'text' | 'download' | null = null;
+
+  filePreviewType: 'pdf' | 'image' | 'other' = 'other';
+  fileUrl = '';
+  safeFileUrl: SafeResourceUrl | null = null;
 
   ngOnInit() {
     this.route.params.subscribe(params => {
@@ -139,7 +160,7 @@ export class CourseViewComponent implements OnInit {
   loadCourseData() {
     this.courseService.getById(this.courseId).subscribe(data => this.course = data);
     this.moduleService.getByCourse(this.courseId).subscribe(data => {
-      this.modules = data;
+      this.modules = data.filter(m => m.type !== 'QUIZ');
       // Autoseleccionar el primer contenido del primer modulo
       if (this.modules.length > 0) {
         const firstMod = this.modules[0];
@@ -152,6 +173,30 @@ export class CourseViewComponent implements OnInit {
   selectContent(content: ModuleContent, type: 'video' | 'text' | 'download', moduleType: string) {
     this.currentContent = content;
     this.contentType = type;
+    if (type === 'download') {
+      this.resolveFilePreview(content);
+    }
+  }
+
+  private resolveFilePreview(content: ModuleContent) {
+    const rawUrl = content.url || '';
+    const fullUrl = content.isLocalFile
+      ? environment.apiUrl.replace('/api', '') + rawUrl
+      : rawUrl;
+
+    this.fileUrl = fullUrl;
+
+    const lower = rawUrl.toLowerCase();
+    if (lower.includes('.pdf')) {
+      this.filePreviewType = 'pdf';
+      this.safeFileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullUrl);
+    } else if (/\.(jpg|jpeg|png|gif|webp|svg)/.test(lower)) {
+      this.filePreviewType = 'image';
+      this.safeFileUrl = null;
+    } else {
+      this.filePreviewType = 'other';
+      this.safeFileUrl = null;
+    }
   }
 
   getVideoUrl(content: ModuleContent): string {
