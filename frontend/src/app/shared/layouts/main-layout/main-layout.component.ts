@@ -1,7 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService, AuthResponse } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -16,10 +16,12 @@ import { AuthService } from '../../../core/services/auth.service';
         </div>
         <div class="hidden lg:flex gap-5 align-items-center text-gray-700 font-medium text-sm">
           <a routerLink="/dashboard" routerLinkActive="text-gray-900 font-bold border-bottom-2" [routerLinkActiveOptions]="{exact: true}" class="no-underline text-gray-600 hover:text-gray-900 transition-colors pb-1" style="border-color: #2a434d !important;">Inicio</a>
-          <!-- Las rutas vacías apuntan a dashboard temporalmente para no causar errores -->
           <a routerLink="/dashboard" routerLinkActive="text-gray-900 font-bold border-bottom-2" class="no-underline text-gray-600 hover:text-gray-900 transition-colors pb-1" style="border-color: #2a434d !important;">Cursos</a>
           <a routerLink="/dashboard" routerLinkActive="text-gray-900 font-bold border-bottom-2" class="no-underline text-gray-600 hover:text-gray-900 transition-colors pb-1" style="border-color: #2a434d !important;">Mi Progreso</a>
           <a routerLink="/certificates" routerLinkActive="text-gray-900 font-bold border-bottom-2" class="no-underline text-gray-600 hover:text-gray-900 transition-colors pb-1" style="border-color: #2a434d !important;">Certificaciones</a>
+          <a *ngIf="isAdmin" routerLink="/admin" class="no-underline font-semibold px-3 py-2 border-round-lg transition-colors" style="background-color: #2a434d; color: #fff;">
+            <i class="pi pi-shield mr-1"></i>Admin
+          </a>
         </div>
         <div class="flex gap-4 align-items-center">
           <i class="pi pi-bell text-xl text-gray-600 cursor-pointer hover:text-gray-900 transition-colors"></i>
@@ -36,9 +38,19 @@ import { AuthService } from '../../../core/services/auth.service';
     </div>
   `
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
+
+  currentUser: AuthResponse | null = null;
+  isAdmin = false;
+
+  ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.isAdmin = user?.role === 'ADMIN';
+    });
+  }
 
   logout() {
     this.authService.logout();

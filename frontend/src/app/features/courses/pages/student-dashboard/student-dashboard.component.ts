@@ -2,7 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { BrandService, Brand } from '../../../../core/services/brand.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService, AuthResponse } from '../../../../core/services/auth.service';
+import { CertificateService, Certificate } from '../../../../core/services/certificate.service';
 
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -45,46 +46,59 @@ import { ButtonModule } from 'primeng/button';
         </div>
       </div>
 
-      <!-- Static Welcome Section -->
+      <!-- Welcome Section -->
       <div class="max-w-7xl mx-auto px-5 pb-8">
-        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="letter-spacing: -0.02em;">Bienvenido, Usuario</h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4" style="letter-spacing: -0.02em;">
+          Bienvenido{{ currentUser?.fullName ? ', ' + currentUser!.fullName : '' }}
+        </h2>
         <div class="grid gap-4 m-0">
-          <!-- Card 1: Ultimo Curso -->
+          <!-- Card 1: Último Curso Completado -->
           <div class="col-12 md:col-6 lg:col-5 p-0">
             <div class="surface-card p-4 border-round-2xl flex align-items-center h-full" style="box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.05);">
-              <div class="surface-200 border-round-lg mr-4 overflow-hidden" style="width: 80px; height: 80px; min-width: 80px;">
-                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=150" alt="Course" class="w-full h-full" style="object-fit: cover;" />
-              </div>
-              <div class="flex-1">
-                <p class="text-sm text-gray-500 m-0 mb-1">Tu último curso:</p>
-                <div class="flex justify-content-between align-items-start mb-3">
-                    <h3 class="text-lg font-bold text-gray-900 m-0">Introducción a la Línea X</h3>
-                    <i class="pi pi-ellipsis-v text-gray-400 cursor-pointer"></i>
+              <ng-container *ngIf="lastCertificate; else noCourseCompleted">
+                <div class="surface-200 border-round-lg mr-4 flex align-items-center justify-content-center" style="width: 80px; height: 80px; min-width: 80px;">
+                  <i class="pi pi-graduation-cap text-3xl" style="color: #2a434d;"></i>
                 </div>
-                <div class="flex align-items-center w-full">
-                  <div class="surface-200 border-round-xl w-full h-1rem overflow-hidden mr-3">
-                    <div class="h-full border-round-xl" style="width: 100%; background-color: #2a434d;"></div>
+                <div class="flex-1">
+                  <p class="text-sm text-gray-500 m-0 mb-1">Tu último curso completado:</p>
+                  <div class="flex justify-content-between align-items-start mb-3">
+                    <h3 class="text-lg font-bold text-gray-900 m-0">{{ lastCertificate.courseName }}</h3>
                   </div>
-                  <span class="text-sm font-bold text-gray-700">100%</span>
+                  <div class="flex align-items-center w-full">
+                    <div class="surface-200 border-round-xl w-full h-1rem overflow-hidden mr-3">
+                      <div class="h-full border-round-xl" style="width: 100%; background-color: #2a434d;"></div>
+                    </div>
+                    <span class="text-sm font-bold text-gray-700">100%</span>
+                  </div>
                 </div>
-              </div>
+              </ng-container>
+              <ng-template #noCourseCompleted>
+                <div class="surface-200 border-round-lg mr-4 flex align-items-center justify-content-center" style="width: 80px; height: 80px; min-width: 80px;">
+                  <i class="pi pi-book text-3xl text-gray-400"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm text-gray-500 m-0 mb-1">Tu último curso:</p>
+                  <h3 class="text-lg font-semibold text-gray-600 m-0">Aún no has completado ningún curso</h3>
+                  <p class="text-sm text-gray-400 mt-2 m-0">¡Explora las marcas y comienza a formarte!</p>
+                </div>
+              </ng-template>
             </div>
           </div>
-          <!-- Card 2: Formacion de clientes -->
+          <!-- Card 2: Mis Logros -->
           <div class="col-12 md:col-6 lg:col-5 p-0">
             <div class="surface-card p-4 border-round-2xl flex flex-column justify-content-center h-full" style="box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.05);">
                <div class="flex justify-content-between align-items-center mb-4">
-                 <h3 class="text-lg font-bold text-gray-900 m-0">Formación de Clientes</h3>
-                 <i class="pi pi-angle-right text-gray-500 cursor-pointer text-xl"></i>
+                 <h3 class="text-lg font-bold text-gray-900 m-0">Mis Logros</h3>
+                 <i class="pi pi-trophy" style="color: #2a434d; font-size: 1.25rem;"></i>
                </div>
                <div class="flex gap-6">
                  <div>
-                   <p class="text-sm text-gray-500 m-0 mb-1">Progreso</p>
-                   <p class="font-bold text-gray-900 m-0">Sobresaliente</p>
+                   <p class="text-sm text-gray-500 m-0 mb-1">Cursos Completados</p>
+                   <p class="font-bold text-gray-900 m-0 text-3xl">{{ certificates.length }}</p>
                  </div>
-                 <div>
-                   <p class="text-sm text-gray-500 m-0 mb-1">Duración</p>
-                   <p class="font-bold text-gray-900 m-0">24 horas</p>
+                 <div *ngIf="lastCertificate">
+                   <p class="text-sm text-gray-500 m-0 mb-1">Último Certificado</p>
+                   <p class="font-bold text-gray-900 m-0">{{ lastCertificate.issuedAt | date:'dd/MM/yyyy' }}</p>
                  </div>
                </div>
             </div>
@@ -96,13 +110,31 @@ import { ButtonModule } from 'primeng/button';
 })
 export class StudentDashboardComponent implements OnInit {
   private brandService = inject(BrandService);
+  private authService = inject(AuthService);
+  private certificateService = inject(CertificateService);
   private router = inject(Router);
 
   brands: Brand[] = [];
+  currentUser: AuthResponse | null = null;
+  certificates: Certificate[] = [];
+  lastCertificate: Certificate | null = null;
 
   ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
+
     this.brandService.getAll(true).subscribe({
       next: (data) => this.brands = data
+    });
+
+    this.certificateService.getMyCertificates().subscribe({
+      next: (certs) => {
+        this.certificates = certs.sort((a, b) =>
+          new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime()
+        );
+        this.lastCertificate = this.certificates.length > 0 ? this.certificates[0] : null;
+      }
     });
   }
 

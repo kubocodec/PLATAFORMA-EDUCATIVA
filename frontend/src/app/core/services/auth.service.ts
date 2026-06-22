@@ -21,11 +21,9 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor() {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Idealmente decodificar el JWT para recuperar datos, 
-      // por ahora simulamos sesión activa
-      this.currentUserSubject.next({ token, email: '', fullName: '', role: '' });
+    const stored = localStorage.getItem('userData');
+    if (stored) {
+      this.currentUserSubject.next(JSON.parse(stored));
     }
   }
 
@@ -34,6 +32,7 @@ export class AuthService {
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('role', response.role);
+        localStorage.setItem('userData', JSON.stringify(response));
         this.currentUserSubject.next(response);
       })
     );
@@ -44,6 +43,7 @@ export class AuthService {
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('role', response.role);
+        localStorage.setItem('userData', JSON.stringify(response));
         this.currentUserSubject.next(response);
       })
     );
@@ -52,6 +52,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
+    localStorage.removeItem('userData');
     this.currentUserSubject.next(null);
   }
 

@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
+import { AuthService, AuthResponse } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -50,7 +51,7 @@ import { RippleModule } from 'primeng/ripple';
         <div class="surface-card shadow-1 p-3 flex justify-content-between align-items-center">
           <p-button icon="pi pi-bars" styleClass="p-button-text md:hidden"></p-button>
           <div class="flex align-items-center gap-3 ml-auto">
-            <span class="font-medium">Administrador</span>
+            <span class="font-medium">{{ currentUser?.fullName || 'Administrador' }}</span>
             <div class="w-2rem h-2rem bg-primary border-circle flex align-items-center justify-content-center">
               <i class="pi pi-user text-white"></i>
             </div>
@@ -65,4 +66,13 @@ import { RippleModule } from 'primeng/ripple';
     </div>
   `
 })
-export class AdminDashboardComponent {}
+export class AdminDashboardComponent implements OnInit {
+  private authService = inject(AuthService);
+  currentUser: AuthResponse | null = null;
+
+  ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
+  }
+}
